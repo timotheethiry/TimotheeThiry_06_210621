@@ -3,8 +3,14 @@ const bodyParser = require('body-parser');
 const Sauce = require('./models/sauce');
 const User = require('./models/user');
 const user = require('./models/user');
+const mongoose = require('mongoose');
 
 const app = express(); // on appelle la méthode express() pour créer une app express
+mongoose.connect('mongodb+srv://OCP6-admin:LOXoZDBFG1sIt5UX@ocp6-backend.5pkum.mongodb.net/piquante?retryWrites=true&w=majority',
+{ useNewUrlParser: true, useUnifiedTopology: true })
+.then(() => console.log('Connected to MongoDB !'))
+.catch(() => console.log('Connexion to MongoDB failed !'));
+
 
 /* app.use write middleware for CORS issues */
 
