@@ -1,9 +1,12 @@
 const express = require('express'); // importer le package express
+const bodyParser = require('body-parser');
+const Sauce = require('./models/sauce');
+const User = require('./models/user');
 
 const app = express(); // on appelle la méthode express() pour créer une app express
 
-/* un middleware est une fonction qui reçoit et gère la requête 
-et la réponse pour ensuite passer la main au middleware suivant*/
+/* extrait le body de la demande en json et le transforme en objet JS*/
+app.use(bodyParser.json());
 
 app.use((req, res, next) => { // on utilise la méthode use pour dire à l'app quoi répondre quand elle reçoit une requête
     console.log('Requête reçue !');
