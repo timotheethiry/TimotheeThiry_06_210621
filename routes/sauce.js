@@ -1,12 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const saucesControllers = require('../controllers/sauces');
-
-/* create a user account */
-router.post('/api/auth/signup', saucesControllers.createUser);
-
-/* authentify a user */
-router.post('/api/auth/login', saucesControllers.authentifyUser);
+const saucesControllers = require('../controllers/sauce');
 
 /* create a sauce */
 router.post('/', saucesControllers.createSauce);

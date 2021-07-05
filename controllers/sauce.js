@@ -1,20 +1,4 @@
 const sauce = require('../models/sauce');
-const user = require('../models/user');
-
-exports.createUser = (req, res, next) => {
-    user = new User ({
-        ...req.body
-    });
-    user.save()
-    .then(() => res.status(201).json({ message: 'User account created !' }))
-    .catch(error => res.status(400).json({ error }));
-};
-
-exports.authentifyUser = (req, res, next) => {
-    User.findOne({ email: req.body.email, password: req.body.password  })
-    .then(() => res.status(200).json({ userId: '', token: '' }))
-    .catch(error => res.status(400).json({ error }));
-};
 
 exports.createSauce = (req, res, next) => {
     sauce = new Sauce ({
