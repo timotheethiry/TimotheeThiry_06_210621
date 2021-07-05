@@ -1,12 +1,6 @@
-exports.signup = (req, res, next) => {
-
-};
-
-exports.login = (req, res, next) => {
-
-};
-
 const user = require('../models/user');
+const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
 
 /* hash received PW, create new user with hashed PW */
 exports.createUser = (req, res, next) => {
@@ -35,7 +29,14 @@ exports.authentifyUser = (req, res, next) => {
             if (!valid) {
                 return res.status(401).json({ error: "Invalid password !"});
             }
-            res.status(200).json({ userId: user._id, token: 'TOKEN'});
+            res.status(200).json({ 
+                userId: user._id, 
+                token: jwt.sign(
+                    { userId: user._id},
+                    'RANDOM_TOKEN_SECRET',
+                    { expiresIn: '24h' }
+                )
+            });
         })
         .catch(error => res.status(500).json({ error }));
     })
