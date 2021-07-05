@@ -13,6 +13,12 @@ mongoose.connect('mongodb+srv://OCP6-admin:LOXoZDBFG1sIt5UX@ocp6-backend.5pkum.m
 
 
 /* app.use write middleware for CORS issues */
+app.use((req, res, next) => {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content, Accept, Content-Type, Authorization');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
+    next();
+});
 
 /* extrait le body de la demande en json et le transforme en objet JS*/
 app.use(bodyParser.json());
