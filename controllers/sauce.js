@@ -1,8 +1,10 @@
-const sauce = require('../models/sauce');
+const Sauce = require('../models/sauce');
 
 exports.createSauce = (req, res, next) => {
     sauce = new Sauce ({
-        ...req.body
+        name: req.body.name,
+        imageUrl: req.body.imageUrl,
+        
     });
     sauce.save()
     .then(() => res.status(201).json({ message: 'New sauce created !' }))
@@ -10,19 +12,19 @@ exports.createSauce = (req, res, next) => {
 };
 
 exports.likeSauce = (req, res, next) => {
-    sauce.findOne({ _id: req.params.id })
+    Sauce.findOne({ _id: req.params.id })
     .then(() => res.status(201).json({ message: 'Preferences saved !' }))
     .catch(error => res.status(400).json({ error }));
 };
 
 exports.modifyLike = (req, res, next) => {
-    sauce.updateOne({ _id: req.params.id }, { userLiked: req.body.userId, userDisliked: req.body.userId, likes: req.body.likes })
+    Sauce.updateOne({ _id: req.params.id }, { userLiked: req.body.userId, userDisliked: req.body.userId, likes: req.body.likes })
     .then(() => res.status(200).json({ message: 'Preferences updated !' }))
     .catch(error => res.status(400).json({ error }));
 };
 
 exports.modifySauce = (req, res, next) => {
-    sauce.updateOne({ _id: req.params.id }, { ...req.body })
+    Sauce.updateOne({ _id: req.params.id }, { ...req.body })
     .then(() => res.status(200).json({ message: 'Sauce modified !' }))
     .catch(error => res.status(400).json({ error }));
 };

@@ -1,12 +1,12 @@
-const user = require('../models/user');
 const bcrypt = require('bcrypt');
+const User = require('../models/user');
 const jwt = require('jsonwebtoken');
 
 /* hash received PW, create new user with hashed PW */
 exports.createUser = (req, res, next) => {
     bcrypt.hash(req.body.password, 10)
     .then(hash => {
-        const user = new User ({
+        const user = new User({
             email: req.body.email,
             password: hash
         });
@@ -14,7 +14,7 @@ exports.createUser = (req, res, next) => {
         .then(() => res.status(201).json({ message: 'User account created !' }))
         .catch(error => res.status(400).json({ error }));
     })
-    .catch(error => res.status(500).json({ error}));   
+    .catch(error => res.status(500).json({ error }));
 };
 
 /* search existing user, compare send PW with saved PW, return user Id and user token */
