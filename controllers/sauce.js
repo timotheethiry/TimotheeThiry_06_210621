@@ -5,6 +5,7 @@ const fs = require('fs');
 exports.createSauce = (req, res, next) => {
     const sauceObject = JSON.parse(req.body.sauce);
     sauce = new Sauce ({
+        userId: res.locals.userId,
         name: sauceObject.name,
         manufacturer: sauceObject.manufacturer,
         description: sauceObject.description,
@@ -26,25 +27,25 @@ exports.likeSauce = (req, res, next) => {
     if (req.body.like === 1) {
         Sauce.updateOne({ _id: req.params.id}, { 
             $inc: { likes: 1 },
-            $push: { usersLiked: req.body.userId }
+            $push: { usersLiked: res.locals.userId }
         })
         .then(() => res.status(201).json({ message: 'Preferences saved !' }))
         .catch(error => res.status(400).json({ error }));
     } else if (req.body.like === -1) {
         Sauce.updateOne({ _id: req.params.id }, {
             $inc: { dislikes: 1 },
-            $push: { usersDisliked: req.body.userId }
+            $push: { usersDisliked: res.locals.userId }
         })
         .then(() => res.status(201).json({ message: 'Preferences saved !' }))
         .catch(error => res.status(400).json({ error }));
     } else if (req.body.like === 0) {
         const findLiked = Sauce.findOne({
             _id: req.params.id,
-            usersLiked: req.body.userId
+            usersLiked: res.locals.userId
         });
         const findDisliked = Sauce.findOne({
             _id: req.params.id,
-            usersDisliked: req.body.userId
+            usersDisliked: res.locals.userId
         });
         Promise.all([findLiked, findDisliked])
         .then(result => {
@@ -52,14 +53,14 @@ exports.likeSauce = (req, res, next) => {
             if (alreadyLiked) {
                 Sauce.updateOne({ _id: req.params.id}, { 
                     $inc: { likes: -1 },
-                    $pull: { usersLiked: req.body.userId }
+                    $pull: { usersLiked: res.locals.userId }
                 })
                 .then(() => res.status(201).json({ message: 'Preferences saved !' }))
                 .catch(error => res.status(400).json({ error }));
             } else if (alreadyDisliked) {
                 Sauce.updateOne({ _id: req.params.id }, {
                     $inc: { dislikes: -1 },
-                    $pull: { usersDisliked: req.body.userId }
+                    $pull: { usersDisliked: res.locals.userId }
                 })
                 .then(() => res.status(201).json({ message: 'Preferences saved !' }))
                 .catch(error => res.status(400).json({ error }));
@@ -71,30 +72,39 @@ exports.likeSauce = (req, res, next) => {
 
 /* modify a sauce w/ or w/o an image */
 exports.modifySauce = (req, res, next) => {
-    const sauceObject = req.file ?
-    { 
-        ...JSON.parse(req.body.sauce),
-        imageUrl: `${req.protocol}://${req.get('host')}/images/${req.file.filename}`,
-    } : { 
-        ...req.body 
-    };
-    Sauce.updateOne({ _id: req.params.id }, { ...sauceObject })
-    .then(() => res.status(200).json({ message: 'Sauce modified !' }))
+    Sauce.findOne({ _id: req.params.id })
+    .then(sauce => {
+        if ( sauce.userId == res.locals.userId ) {
+            const sauceObject = req.file ?
+            { 
+                ...JSON.parse(req.body.sauce),
+                imageUrl: `${req.protocol}://${req.get('host')}/images/${req.file.filename}`,
+            } : { 
+                ...req.body 
+            };
+            Sauce.updateOne({ _id: req.params.id }, { ...sauceObject })
+            .then(() => res.status(200).json({ message: 'Sauce modified !' }))
+            .catch(error => res.status(400).json({ error }));
+        }
+    })
     .catch(error => res.status(400).json({ error }));
+
 };
 
 /* delete a sauce, search the corresponding image and delete it */
 exports.deleteSauce = (req, res, next) => {
     Sauce.findOne({ _id: req.params.id })
     .then(sauce => {
-        const filename = sauce.imageUrl.split('/images/')[1];
-        fs.unlink(`images/${filename}`, () => {
-            Sauce.deleteOne({ _id: req.params.id })
-            .then(() => res.status(200).json({ message: 'Sauce deleted !' }))
-            .catch(error => res.status(400).json({ error }));
-        })
+        if ( sauce.userId == res.locals.userId ) {
+            const filename = sauce.imageUrl.split('/images/')[1];
+            fs.unlink(`images/${filename}`, () => {
+                Sauce.deleteOne({ _id: req.params.id })
+                .then(() => res.status(200).json({ message: 'Sauce deleted !' }))
+                .catch(error => res.status(400).json({ error }));
+            }) 
+        }
     })
-    .catch(error => res.staus(500).json({ error }));
+    .catch(error => res.status(500).json({ error }));
 };
 
 /* returns a specific sauce for GET requests */
