@@ -2,6 +2,13 @@ const express = require('express'); // importer le package express
 const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
 const path = require('path');
+const env = require('dotenv').config();
+
+const user = process.env.DB_USER;
+const password = process.env.DB_PASS;
+const cluster = process.env.DB_CLUSTER;
+const database = process.env.DB_DATABASE;
+const dbUri = 'mongodb+srv://' + user + ':' + password +'@' + cluster + '.5pkum.mongodb.net/' + database + '?retryWrites=true&w=majority';
 
 /* import the sauces and user CRUD router */
 const sauceRoutes = require('./routes/sauce');
@@ -9,8 +16,7 @@ const userRoutes = require('./routes/user');
 
 /* create an express app and link it to a mongoDB database */
 const app = express();
-mongoose.connect('mongodb+srv://OCP6-aqw:JkhaDTX65KmnhEdM@ocp6-backend.5pkum.mongodb.net/piquante?retryWrites=true&w=majority',
-{ useNewUrlParser: true, useUnifiedTopology: true })
+mongoose.connect(dbUri, { useNewUrlParser: true, useUnifiedTopology: true })
 .then(() => console.log('Connected to MongoDB !'))
 .catch(() => console.log('Connexion to MongoDB failed !'));
 
