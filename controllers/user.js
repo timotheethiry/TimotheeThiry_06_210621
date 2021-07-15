@@ -1,14 +1,13 @@
 const bcrypt = require('bcrypt');
 const User = require('../models/user');
 const jwt = require('jsonwebtoken');
-const passwordValidator = require('password-validator');
-const pwSchema = require('../models/password');
+const pwSchema = require('../security/password');
 const inputValidator = require('node-input-validator');
 
 /* input validation, hash received PW, create new user with hashed PW */
 exports.createUser = (req, res, next) => {
     const validInput = new inputValidator.Validator(req.body, {
-        email: 'required|email',
+        email: 'required|email|max:100',
         password: 'required'
     });
 
@@ -52,12 +51,16 @@ exports.authentifyUser = (req, res, next) => {
             User.findOne({ email: req.body.email })
             .then( user => {
                 if (!user) {
-                    return res.status(401).json({ error: "Didn't find user !"}); 
+                    const f = resolve => setTimeout(resolve, 5000);
+                    Promise.all(f); // limit brute force attack adding a delay
+                    return res.status(401).json({ error: "Didn't find user or password is invalid !"}); 
                 }
                 bcrypt.compare(req.body.password, user.password)
                 .then(valid => {
                     if (!valid) {
-                        return res.status(401).json({ error: "Invalid password !"});
+                        const f = resolve => setTimeout(resolve, 5000);
+                        Promise.all(f); // limit brute force attack adding a delay
+                        return res.status(401).json({ error: "Didn't find user or password is invalid !"});
                     }
                     res.status(200).json({ 
                         userId: user._id, 

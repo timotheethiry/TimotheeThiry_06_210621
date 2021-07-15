@@ -1,25 +1,42 @@
 const Sauce = require('../models/sauce');
 const fs = require('fs');
+const inputValidator = require('node-input-validator');
 
 /* create a sauce, convert the body request from form-data JS object, set likes and users to 0 */
 exports.createSauce = (req, res, next) => {
     const sauceObject = JSON.parse(req.body.sauce);
-    sauce = new Sauce ({
-        userId: res.locals.userId,
-        name: sauceObject.name,
-        manufacturer: sauceObject.manufacturer,
-        description: sauceObject.description,
-        mainPepper: sauceObject.mainPepper,
-        imageUrl: `${req.protocol}://${req.get('host')}/images/${req.file.filename}`,
-        heat: sauceObject.heat,
-        likes: 0,
-        dislikes: 0,
-        userLiked: [],
-        userDisliked: []
+    const validInput = new inputValidator.Validator(req.body.sauce, {
+        name: 'required|string|max:100',
+        manufacturer: 'required|string|max:100',
+        description: 'required|string|max:100',
+        mainPepper: 'required|string|max:100',
+        heat: 'required|integer|min:0|max:10'
     });
-    sauce.save()
-    .then(() => res.status(201).json({ message: 'New sauce created !' }))
-    .catch(error => res.status(400).json({ error }));
+
+    validInput.check()
+    .then((matched) => {
+        if (!matched) {
+            res.status(400).send(validInput.errors);
+        } else {
+            sauce = new Sauce ({
+                userId: res.locals.userId,
+                name: sauceObject.name,
+                manufacturer: sauceObject.manufacturer,
+                description: sauceObject.description,
+                mainPepper: sauceObject.mainPepper,
+                imageUrl: `${req.protocol}://${req.get('host')}/images/${req.file.filename}`,
+                heat: sauceObject.heat,
+                likes: 0,
+                dislikes: 0,
+                userLiked: [],
+                userDisliked: []
+            });
+            sauce.save()
+            .then(() => res.status(201).json({ message: 'New sauce created !' }))
+            .catch(error => res.status(400).json({ error }));
+        }
+    })
+    .catch(errors => res.status(400).send(validInput.errors));
 };
 
 /* handles likes and dislikes from a user */
@@ -72,23 +89,38 @@ exports.likeSauce = (req, res, next) => {
 
 /* modify a sauce w/ or w/o an image */
 exports.modifySauce = (req, res, next) => {
-    Sauce.findOne({ _id: req.params.id })
-    .then(sauce => {
-        if ( sauce.userId == res.locals.userId ) {
-            const sauceObject = req.file ?
-            { 
-                ...JSON.parse(req.body.sauce),
-                imageUrl: `${req.protocol}://${req.get('host')}/images/${req.file.filename}`,
-            } : { 
-                ...req.body 
-            };
-            Sauce.updateOne({ _id: req.params.id }, { ...sauceObject })
-            .then(() => res.status(200).json({ message: 'Sauce modified !' }))
+    const validInput = new inputValidator.Validator(req.body.sauce, {
+        name: 'required|string|max:100',
+        manufacturer: 'required|string|max:100',
+        description: 'required|string|max:100',
+        mainPepper: 'required|string|max:100',
+        heat: 'required|integer|min:0|max:10'
+    });
+
+    validInput.check()
+    .then((matched) => {
+        if (!matched) {
+            res.status(400).send(validInput.errors);
+        } else {
+            Sauce.findOne({ _id: req.params.id })
+            .then(sauce => {
+                if ( sauce.userId == res.locals.userId ) {
+                    const sauceObject = req.file ?
+                    { 
+                        ...JSON.parse(req.body.sauce),
+                        imageUrl: `${req.protocol}://${req.get('host')}/images/${req.file.filename}`,
+                    } : { 
+                        ...req.body 
+                    };
+                    Sauce.updateOne({ _id: req.params.id }, { ...sauceObject })
+                    .then(() => res.status(200).json({ message: 'Sauce modified !' }))
+                    .catch(error => res.status(400).json({ error }));
+                }
+            })
             .catch(error => res.status(400).json({ error }));
         }
     })
-    .catch(error => res.status(400).json({ error }));
-
+    .catch(errors => res.status(400).send(validInput.errors));
 };
 
 /* delete a sauce, search the corresponding image and delete it */
