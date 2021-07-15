@@ -3,11 +3,12 @@ const User = require('../models/user');
 const jwt = require('jsonwebtoken');
 const pwSchema = require('../security/password');
 const inputValidator = require('node-input-validator');
+const mongoose = require('mongoose');
 
 /* input validation, hash received PW, create new user with hashed PW */
 exports.createUser = (req, res, next) => {
     const validInput = new inputValidator.Validator(req.body, {
-        email: 'required|email|max:100',
+        email: 'required|email|length:100',
         password: 'required'
     });
 
@@ -17,17 +18,21 @@ exports.createUser = (req, res, next) => {
             res.status(400).send(validInput.errors);
         } else {
             if (pwSchema.validate(req.body.password)) {
-            bcrypt.hash(req.body.password, 10)
-            .then(hash => {
-                const user = new User({
-                    email: req.body.email,
-                    password: hash
-                });
-                user.save()
-                .then(() => res.status(201).json({ message: 'User account created !' }))
-                .catch(error => res.status(400).json({ error }));
-            })
-            .catch(error => res.status(500).json({ error }));
+                bcrypt.hash(req.body.password, 10)
+                .then(hash => {
+                    const newId = new mongoose.Types.ObjectId();
+                    console.log(newId);
+                    const user = new User({
+                        userId: newId,
+                        email: req.body.email,
+                        password: hash
+                    });
+                    console.log(user);
+                    user.save()
+                    .then(() => res.status(201).json({ message: 'User account created !' }))
+                    .catch(error => res.status(400).json({ error }));
+                })
+                .catch(error => res.status(500).json({ error }));
             } else {
                 throw 'Invalid password';
             }
