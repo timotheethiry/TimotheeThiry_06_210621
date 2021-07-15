@@ -21,13 +21,11 @@ exports.createUser = (req, res, next) => {
                 bcrypt.hash(req.body.password, 10)
                 .then(hash => {
                     const newId = new mongoose.Types.ObjectId();
-                    console.log(newId);
                     const user = new User({
                         userId: newId,
                         email: req.body.email,
                         password: hash
                     });
-                    console.log(user);
                     user.save()
                     .then(() => res.status(201).json({ message: 'User account created !' }))
                     .catch(error => res.status(400).json({ error }));
