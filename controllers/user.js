@@ -97,6 +97,7 @@ exports.deleteUser = (req, res, next) => {
     .catch(error => res.status(500).json({ error }));
 };
 
+/* mask the email when querying the users */
 exports.getAllUsers = (req, res, next) => {
     const map = { email: '_email' };  
     const fields = req.body.email ? mongoMask(req.body.email, { map }) : null;
@@ -109,7 +110,8 @@ exports.getAllUsers = (req, res, next) => {
         res.json(users);
     });
 };
-  
+
+/* mask the email when querying the users */
 exports.getUser = (req, res, next) => {
     const map = { email: '_email' };  
     const fields = req.body.email ? mongoMask(req.body.email, { map }) : null;
