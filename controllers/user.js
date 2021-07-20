@@ -96,3 +96,29 @@ exports.deleteUser = (req, res, next) => {
     })
     .catch(error => res.status(500).json({ error }));
 };
+
+exports.getAllUsers = (req, res, next) => {
+    const map = { email: '_email' };  
+    const fields = req.body.email ? mongoMask(req.body.email, { map }) : null;
+    User.find({}, fields)
+    .then(users => {
+        users.forEach(user => {
+            user.email = user._email;
+            delete user._email;
+        });
+        res.json(users);
+    });
+};
+  
+exports.getUser = (req, res, next) => {
+    const map = { email: '_email' };  
+    const fields = req.body.email ? mongoMask(req.body.email, { map }) : null;
+    User.findOne({ _id: req.params.id }, fields, (err, doc) => {
+        if (err) {
+            return next(err);
+        }
+        doc.email = doc._email;
+        delete doc._email;
+        res.json(doc);
+    });
+  };
